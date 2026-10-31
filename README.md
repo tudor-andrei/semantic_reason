@@ -1,6 +1,7 @@
 # Semantic Reasoning With Neuro-Symbolic Mapping for CLIPS Expert Systems
 
-Short description of the semantic reasoning for expert systems project.
+This is a semantic reasoning task that maps natural language sentences to structured CLIPS patterns.
+Deep embedding models are integrated to provide rule-based expert systems with broader semantic understanding.
 
 ## Table of Contents
 
