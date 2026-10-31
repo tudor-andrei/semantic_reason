@@ -1,6 +1,8 @@
+import os
 from typing import List, Tuple
 
 import pandas as pd
+from dotenv import load_dotenv
 from huggingface_hub import login
 from sentence_transformers import SentenceTransformer, util
 
@@ -127,12 +129,25 @@ class CLIPSPatternMapper:
 
 
 def user_login():
-    print(
-        "\n🔐 Enter your Hugging Face access token "
-        "(get one at https://huggingface.co/settings/tokens):"
-    )
-    token = input("Access Token: ").strip()
-    login(token=token)
+    """Loads environment variables and logs in to Hugging Face automatically."""
+    # Load environment variables from .env file
+    load_dotenv()
+
+    hf_token = os.getenv("HF_TOKEN")
+
+    if hf_token:
+        print("🔐 Found HF_TOKEN in environment. Logging in automatically...")
+        # Pass the token explicitly to bypass the interactive terminal prompt
+        login(token=hf_token)
+    else:
+        # Fallback method if someone forgets to create or populate their .env file
+        print(
+            "⚠️ HF_TOKEN not found in .env. Falling back to manual entry."
+            "\n🔐 Enter your Hugging Face access token "
+            "(get one at https://huggingface.co/settings/tokens):"
+        )
+        token = input("Access Token: ").strip()
+        login(token=token)
 
 
 def extract_patterns_from_clp(filepath: str) -> List[str]:
