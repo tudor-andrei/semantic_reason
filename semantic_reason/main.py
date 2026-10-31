@@ -1,6 +1,7 @@
 import os
 from typing import List, Tuple
 
+import matplotlib.pyplot as plt
 import pandas as pd
 from dotenv import load_dotenv
 from huggingface_hub import login
@@ -71,6 +72,59 @@ class CLIPSPatternMapper:
         print(f"\nEmbeddings for {label}:")
         print(df)
 
+    def plot_span_candidates(
+        self,
+        variable: str,
+        candidate_spans: List[str],
+        scores: List[float],
+        best_span: str,
+        save_path: str = None,
+    ):
+        """
+        Plot a ranked bar chart of candidate spans and their cosine similarity
+        scores for a given CLIPS variable, highlighting the span that was
+        ultimately selected during variable assignment.
+
+        :param variable: The CLIPS variable being assigned (e.g. '?nume-complet')
+        :param candidate_spans: List of candidate spans generated from the sentence
+        :param scores: List of cosine similarity scores, aligned with candidate_spans
+        :param best_span: The span that was selected as the best match
+        :param save_path: If given, save the figure to this path instead of showing it
+        """
+        # Rank candidates from highest to lowest similarity
+        order = sorted(range(len(scores)), key=lambda i: scores[i], reverse=True)
+        labels = [candidate_spans[i] for i in order]
+        ranked_scores = [scores[i] for i in order]
+
+        # Highlight the winning span in a different color
+        colors = ["#e69f00" if label == best_span else "#3b528b" for label in labels]
+
+        plt.figure(figsize=(max(6, len(labels) * 0.6), 4))
+        bars = plt.bar(range(len(labels)), ranked_scores, color=colors)
+        plt.xticks(range(len(labels)), labels, rotation=60, ha="right")
+        plt.ylabel("Cosine Similarity")
+        plt.ylim(0, 1)
+        plt.title(f"Candidate Spans for {variable} (winner in orange)")
+
+        for bar, score in zip(bars, ranked_scores):
+            plt.text(
+                bar.get_x() + bar.get_width() / 2,
+                bar.get_height() + 0.02,
+                f"{score:.4f}",
+                ha="center",
+                va="bottom",
+                fontsize=8,
+            )
+
+        plt.tight_layout()
+
+        if save_path:
+            plt.savefig(save_path, dpi=150)
+            print(f"\n✅ Span-candidate plot saved to {save_path}")
+            plt.close()
+        else:
+            plt.show()
+
     def map_sentence_to_best_pattern(
         self, sentence: str, patterns: List[str]
     ) -> Tuple[str, float]:
@@ -109,16 +163,21 @@ class CLIPSPatternMapper:
                 # --- General Variable Assignment ---
                 for var in variables:
                     best_span, best_score = None, -1.0
+                    span_scores = []  # NEW: track every candidate's score for plotting
 
                     for span in candidate_spans:
                         temp_fact = assigned_fact.replace(var, span, 1)
                         temp_emb = self.model.encode(temp_fact, convert_to_tensor=True)
                         score = util.cos_sim(sentence_embs, temp_emb).item()
+                        span_scores.append(score)  # NEW
                         if score > best_score:
                             best_score = score
                             best_span = span
 
                     assigned_fact = assigned_fact.replace(var, best_span, 1)
+
+                    # Visualize how the winning span was chosen among all candidates
+                    self.plot_span_candidates(var, candidate_spans, span_scores, best_span)
 
                 best_fact, best_score = assigned_fact, similarity
 
@@ -231,7 +290,7 @@ if __name__ == "__main__":
 #         # "(is a-great-actor ?name)",
 #         # "(a-great-actor plays-in ?production)"
 #     ]
-#     sentence = "Un actor grozav joaca la Studioul Hollywood"  # Andrei is a great actor, To play in Hollywood you have to be a great actor, Florin Piersic este un actor exceptional
+#     sentence = "Un actor grozav joaca la Studioul Hollywood"  # Florin Piersic este un actor exceptional, Andrei is a great actor, To play in Hollywood you have to be a great actor
 #
 #     mapper = CLIPSPatternMapper()
 #     fact, score = mapper.map_sentence_to_best_pattern(sentence, patterns)
