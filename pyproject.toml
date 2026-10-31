@@ -8,5 +8,7 @@ dependencies = [
     "black>=25.9.0",
     "isort>=6.1.0",
     "pandas>=2.3.3",
+    "python-dotenv>=1.2.1",
+    "seaborn>=0.13.2",
     "sentence-transformers>=5.1.2",
 ]
