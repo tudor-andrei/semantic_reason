@@ -22,12 +22,14 @@ uv sync
 ### Custom Installation
 
 ---
-| Package                | Version  |
-|------------------------|----------|
-| black                  | 25.9.0   |
-| isort                  | 6.1.0    |
-| pandas                 | 2.3.3    |
-| sentence-transformers  | 5.1.2    |
+| Package                | Version |
+|------------------------|---------|
+| black                  | 25.9.0  |
+| isort                  | 6.1.0   |
+| pandas                 | 2.3.3   |
+| python-dotenv          | 1.2.1   |
+| seaborn                | 0.13.2  | 
+| sentence-transformers  | 5.1.2   |
 
 ### Initialize project using UV package
 
@@ -45,7 +47,13 @@ uv add isort
 
 uv add pandas
 
+uv add python-dotenv
+
+uv add seaborn
+
 uv add sentence-transformers
+
+
 ```
 
 ## Usage
