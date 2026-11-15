@@ -20,6 +20,7 @@ class CLIPSPatternMapper:
         """
         self.model = SentenceTransformer(model_name)
         self.max_span_len = max_span_len
+        self.figure_counter = 0
 
     @staticmethod
     def parse_pattern(pattern: str) -> Tuple[List[str], List[str]]:
@@ -119,7 +120,12 @@ class CLIPSPatternMapper:
         plt.tight_layout()
 
         if save_path:
-            plt.savefig(save_path, dpi=150)
+            plt.savefig(
+                save_path,
+                dpi=600,
+                bbox_inches="tight",
+                format="png"
+            )
             print(f"\n✅ Span-candidate plot saved to {save_path}")
             plt.close()
         else:
@@ -177,7 +183,11 @@ class CLIPSPatternMapper:
                     assigned_fact = assigned_fact.replace(var, best_span, 1)
 
                     # Visualize how the winning span was chosen among all candidates
-                    self.plot_span_candidates(var, candidate_spans, span_scores, best_span)
+                    self.figure_counter += 1
+                    self.plot_span_candidates(
+                        var, candidate_spans, span_scores, best_span,
+                        save_path=f"figures/candidate_spans_{self.figure_counter}.png"
+                    )
 
                 best_fact, best_score = assigned_fact, similarity
 
@@ -270,6 +280,7 @@ if __name__ == "__main__":
 
     mapper = CLIPSPatternMapper()
     mapped_facts = []
+    os.makedirs("figures", exist_ok=True)
 
     for s in sentences:
         fact, score = mapper.map_sentence_to_best_pattern(s, patterns)
